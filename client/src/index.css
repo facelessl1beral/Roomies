@@ -1,0 +1,26 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  background: #0a0a0f;
+}
+
+body {
+  background: #0a0a0f !important;
+  color: #f0eeea;
+  min-height: 100vh;
+  font-family: 'Satoshi', sans-serif;
+}
+
+#root {
+  min-height: 100vh;
+  background: inherit;
+}
+
+[data-theme="light"] body {
+  background: #f5f3ff !important;
+  color: #1a1035;
+}

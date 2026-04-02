@@ -4,7 +4,6 @@ import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { getCurrentProfile } from "../../actions/profile";
 import Spinner from "../layout/Spinner";
-import {Container, Row, Col, Button} from 'react-bootstrap'
 
 const Dashboard = ({
   getCurrentProfile,
@@ -14,88 +13,142 @@ const Dashboard = ({
   useEffect(() => {
     getCurrentProfile();
   }, [getCurrentProfile]);
-  return loading && profile === null ? (
-    <Spinner />
-  ) : (
-    <Fragment>
-      <h1 className="large text-primary">Dashboard</h1>
-      <p className="lead">
-        <i className="fa fa-user"></i> Welcome!
-      </p>
+
+  if (loading && profile === null) return <Spinner />;
+
+  const displayName = profile
+    ? (profile.name || `${profile.firstName || ''} ${profile.lastName || ''}`.trim())
+    : (user ? user.firstName : '');
+
+  return (
+    <div className="container">
+      <div className="dashboard-header">
+        <h1 className="large">Dashboard</h1>
+        <p className="lead">
+          Welcome back, <span style={{ color: 'var(--accent-purple)', fontWeight: 600 }}>
+            {user && user.firstName}
+          </span>
+        </p>
+      </div>
+
       {profile !== null ? (
         <Fragment>
-          <Container>
-            <Row>
-              <Col md={8}>
-              <div className="profile bg-light">
-                <img className="round-img" src={profile.avatar} alt="" />
-                <div>
-                  <h2>{profile.name}</h2>
-                  <p>{profile.city} <span> , {profile.country}</span></p>
-                  <p>
-                    <span className="font-weight-bold">Age: </span>{profile.age}<br/>
-                    <span className="font-weight-bold">Gender: </span>{profile.gender}<br/>
-                  </p>
-                  <p>
-                    <span className="font-weight-bold">University: </span>{profile.univ}<br/>
-                    <span className="font-weight-bold">Course: </span>{profile.course}<br/>
-                    <span className="font-weight-bold">Semster: </span>{profile.sem}<br/>
-                  </p>
-                  <p>
-                    <span className="font-weight-bold">Food: </span>{profile.food}<br/>
-                    <span className="font-weight-bold">Smoking: </span>{profile.smoke}<br/>
-                    <span className="font-weight-bold">Drinking: </span>{profile.drink}<br/>
-                    <span className="font-weight-bold">Cooking: </span>{profile.cook}<br/>
-                  </p>
-                  <p>
-                    <a href={profile.linkedin}>LinkedIn</a><br/>
-                    {profile.notes}
-                  </p>
-                  <Link to={`/edit-profile`} className="btn btn-primary">
-                    Edit Profile
+          <div className="dashboard-grid">
+            {/* Profile card */}
+            <div className="profile-card">
+              {profile.avatar ? (
+                <img className="round-img" src={profile.avatar} alt={displayName}
+                  style={{ width: 72, height: 72 }} />
+              ) : (
+                <div style={{
+                  width: 72, height: 72, borderRadius: '50%',
+                  background: 'var(--bg-tertiary)', border: '2px dashed var(--border)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: '1.8rem', flexShrink: 0, color: 'var(--text-muted)'
+                }}>​<span role='img' aria-label='person'>👤</span></div>
+              )}
+              <div className="profile-card-info">
+                <h2>{displayName || 'Your Name'}</h2>
+                <p>{profile.city}{profile.country && `, ${profile.country}`}</p>
+                {profile.univ && <p style={{ fontSize: '0.85rem' }}>{profile.univ}</p>}
+                <div style={{ marginTop: '0.5rem' }}>
+                  {profile.gender && <span className="tag">{profile.gender}</span>}
+                  {profile.age && <span className="tag">{profile.age}</span>}
+                  {profile.course && <span className="tag">{profile.course}</span>}
+                  {profile.food && <span className="tag">{profile.food}</span>}
+                  {profile.smoke && <span className="tag">{profile.smoke}</span>}
+                </div>
+                <div className="dashboard-actions">
+                  <Link to="/edit-profile" className="btn btn-primary" style={{ fontSize: '0.85rem', padding: '0.5rem 1.1rem' }}>
+                    Edit profile
+                  </Link>
+                  <Link to="/recommendations" className="btn btn-secondary" style={{ fontSize: '0.85rem', padding: '0.5rem 1.1rem' }}>
+                    Discover →
                   </Link>
                 </div>
               </div>
-              </Col>
-              <Col md={4}>
-              <div className="bg-light p-2">
-                <div>
-                  <h3>Roomate Preferences</h3>
-                  <p><span className="font-weight-bold">Country: </span>{profile.roomieCountry}</p>
-                  <p>
-                    <span className="font-weight-bold">Age: </span>{profile.roomieAge}<br/>
-                    <span className="font-weight-bold">Gender: </span>{profile.roomieGender}<br/>
-                  </p>
-                  <p>
-                    <span className="font-weight-bold">University: </span>{profile.roomieUniv}<br/>
-                    <span className="font-weight-bold">Course: </span>{profile.roomieCourse}<br/>
-                    <span className="font-weight-bold">Semster: </span>{profile.roomieSem}<br/>
-                  </p>
-                  <p>
-                    <span className="font-weight-bold">Food: </span>{profile.roomieFood}<br/>
-                    <span className="font-weight-bold">Smoking: </span>{profile.roomieSmoke}<br/>
-                    <span className="font-weight-bold">Drinking: </span>{profile.roomieDrink}<br/>
-                    <span className="font-weight-bold">Cooking: </span>{profile.roomieCook}<br/>
-                  </p>
+            </div>
 
-                  <Link to={`/edit-profile`} className="btn btn-primary">
-                    Edit Roomie Preferences
-                  </Link>
+            {/* Roommate preferences card */}
+            <div className="prefs-card">
+              <h3>Roommate preferences</h3>
+              {[
+                ['Gender',   profile.roomieGender],
+                ['Age',      profile.roomieAge],
+                ['Country',  profile.roomieCountry],
+                ['Food',     profile.roomieFood],
+                ['Smoking',  profile.roomieSmoke],
+                ['Drinking', profile.roomieDrink],
+              ].map(([label, value]) => value && (
+                <div className="pref-row" key={label}>
+                  <span>{label}</span>
+                  <span>{value}</span>
                 </div>
+              ))}
+              {profile.sleepSchedule && (
+                <div className="pref-row">
+                  <span>Sleep</span>
+                  <span>{profile.sleepSchedule}</span>
+                </div>
+              )}
+              {profile.cleanliness && (
+                <div className="pref-row">
+                  <span>Cleanliness</span>
+                  <span>{profile.cleanliness}</span>
+                </div>
+              )}
+              <div style={{ marginTop: '1rem' }}>
+                <Link to="/edit-profile" className="btn btn-secondary" style={{ fontSize: '0.85rem', padding: '0.5rem 1.1rem' }}>
+                  Edit preferences
+                </Link>
               </div>
-              </Col>
-            </Row>
-          </Container>
+            </div>
+          </div>
+
+          {/* Lifestyle summary strip */}
+          {(profile.sleepSchedule || profile.studyPref || profile.social || profile.noise) && (
+            <div className="card" style={{ marginTop: '1.25rem' }}>
+              <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '0.8rem', marginBottom: '1rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                Lifestyle snapshot
+              </h3>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                {profile.sleepSchedule && (
+                  <span className="tag">🌙 {profile.sleepSchedule}</span>
+                )}
+                {profile.studyPref && (
+                  <span className="tag">📚 {profile.studyPref}</span>
+                )}
+                {profile.cleanliness && (
+                  <span className="tag">✨ {profile.cleanliness}</span>
+                )}
+                {profile.social && (
+                  <span className="tag">👥 {profile.social}</span>
+                )}
+                {profile.noise && (
+                  <span className="tag">🔊 {profile.noise}</span>
+                )}
+                {profile.exercise && (
+                  <span className="tag">🏃 {profile.exercise}</span>
+                )}
+              </div>
+            </div>
+          )}
         </Fragment>
       ) : (
-        <Fragment>
-          <p>You have not yet setup a profile, please add some info...</p>
-          <Link to="/edit-profile" className="btn btn-primary my-1">
-            Create Profile
+        <div className="card" style={{ textAlign: 'center', padding: '3rem' }}>
+          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>​<span role='img' aria-label='wave'>👋</span></div>
+          <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', marginBottom: '0.5rem' }}>
+            Let's set up your profile
+          </h3>
+          <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
+            Complete your profile so we can find your perfect roommate match.
+          </p>
+          <Link to="/edit-profile" className="btn btn-primary">
+            Create profile →
           </Link>
-        </Fragment>
+        </div>
       )}
-    </Fragment>
+    </div>
   );
 };
 
@@ -110,6 +163,4 @@ const mapStateToProps = (state) => ({
   profile: state.profile,
 });
 
-export default connect(mapStateToProps, { getCurrentProfile })(
-  Dashboard
-);
+export default connect(mapStateToProps, { getCurrentProfile })(Dashboard);

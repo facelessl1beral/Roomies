@@ -3,18 +3,41 @@ import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { logout } from '../../actions/auth';
+import { useTheme } from '../../App';
 
 const Navbar = ({ auth: { isAuthenticated, loading }, logout }) => {
+  const { theme, toggleTheme } = useTheme();
+  const isHostelAdmin = !!localStorage.getItem('hostelToken');
+
+  const adminLinks = (
+    <ul>
+      <li><span style={{ opacity: 0.7, fontSize: '0.9rem' }}>Hostel Admin</span></li>
+      <li>
+        <a href='#!' style={{ cursor: 'pointer' }} onClick={() => {
+          localStorage.removeItem('hostelToken');
+          window.location.href = '/admin';
+        }}>
+          <span className='hide-sm'>Logout</span>
+        </a>
+      </li>
+      <li>
+        <button className='theme-toggle' onClick={toggleTheme} title='Toggle theme'>
+          {theme === 'dark' ? '☀️' : '🌙'}
+        </button>
+      </li>
+    </ul>
+  );
+
   const authLinks = (
     <ul>
       <li>
         <Link to='/recommendations'>
-          <span className='hide-sm'>Recommendations</span>
+          <span className='hide-sm'>Discover</span>
         </Link>
       </li>
       <li>
         <Link to='/profiles'>
-          <span className='hide-sm'>Users</span>
+          <span className='hide-sm'>People</span>
         </Link>
       </li>
       <li>
@@ -23,10 +46,14 @@ const Navbar = ({ auth: { isAuthenticated, loading }, logout }) => {
         </Link>
       </li>
       <li>
-        <a onClick={logout} href='#!'>
-          <i className='fas fa-sign-out-alt' />{' '}
+        <a onClick={logout} href='#!' style={{ cursor: 'pointer' }}>
           <span className='hide-sm'>Logout</span>
         </a>
+      </li>
+      <li>
+        <button className='theme-toggle' onClick={toggleTheme} title='Toggle theme'>
+          {theme === 'dark' ? '☀️' : '🌙'}
+        </button>
       </li>
     </ul>
   );
@@ -34,28 +61,29 @@ const Navbar = ({ auth: { isAuthenticated, loading }, logout }) => {
   const guestLinks = (
     <ul>
       <li>
-        <Link to='/profiles'>
-          <span className='hide-sm'>Users</span>
-        </Link>
-      </li>
-      <li>
         <Link to='/register'>Register</Link>
       </li>
       <li>
+        <Link to='/admin' style={{ opacity: 0.6, fontSize: '0.85rem' }}>Hostel Admin</Link>
+      </li>
+      <li>
         <Link to='/login'>Login</Link>
+      </li>
+      <li>
+        <button className='theme-toggle' onClick={toggleTheme} title='Toggle theme'>
+          {theme === 'dark' ? '☀️' : '🌙'}
+        </button>
       </li>
     </ul>
   );
 
   return (
-    <nav className='navbar bg-dark'>
+    <nav className='navbar'>
       <h2>
-        <Link to='/'>
-          <i className='fas fa-home' /> Roomies
-        </Link>
-      </h2> 
+        <Link to='/'>Homies</Link>
+      </h2>
       {!loading && (
-        <Fragment>{isAuthenticated ? authLinks : guestLinks}</Fragment>
+        <Fragment>{isHostelAdmin ? adminLinks : isAuthenticated ? authLinks : guestLinks}</Fragment>
       )}
     </nav>
   );
@@ -70,7 +98,4 @@ const mapStateToProps = state => ({
   auth: state.auth
 });
 
-export default connect(
-  mapStateToProps,
-  { logout }
-)(Navbar);
+export default connect(mapStateToProps, { logout })(Navbar);

@@ -1,9 +1,182 @@
-import React, { Fragment, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import Spinner from '../layout/Spinner';
 import { getCurrentProfile, createProfile } from '../../actions/profile';
-import {Form, Col, Button} from 'react-bootstrap'
+import Spinner from '../layout/Spinner';
+
+const STEPS = [
+  {
+    id: 'basics',
+    title: 'The basics',
+    subtitle: "Let's start with who you are",
+    fields: [
+      { name: 'displayName', label: 'Full name', type: 'text', placeholder: 'Your full name' },
+      { name: 'city', label: 'City', type: 'text', placeholder: 'Where are you based?' },
+      { name: 'country', label: 'Country', type: 'text', placeholder: 'Your country' },
+      { name: 'linkedin', label: 'LinkedIn (optional)', type: 'text', placeholder: 'https://linkedin.com/in/...' },
+      { name: 'notes', label: 'Bio (optional)', type: 'textarea', placeholder: 'Tell potential roommates something about yourself...' },
+    ]
+  },
+  {
+    id: 'identity',
+    title: 'Your identity',
+    subtitle: 'Help us understand you better',
+    fields: [
+      {
+        name: 'gender', label: 'Gender', type: 'pills',
+        options: ['Male', 'Female', 'Non-Binary', 'Transgender', 'Intersex', 'Prefer not to say']
+      },
+      {
+        name: 'age', label: 'Age group', type: 'pills',
+        options: ['18-24', '25-29', '30-34', '35-39', '40-44', '45-49', '50+']
+      },
+      { name: 'univ', label: 'University / Institution', type: 'text', placeholder: 'e.g. Makerere University' },
+      { name: 'course', label: 'Course / Programme', type: 'text', placeholder: 'e.g. BSc Computer Science' },
+      {
+        name: 'sem', label: 'Year of study', type: 'pills',
+        options: ['Year 1', 'Year 2', 'Year 3', 'Year 4', 'Postgraduate', 'Alumni']
+      },
+    ]
+  },
+  {
+    id: 'lifestyle',
+    title: 'Your lifestyle',
+    subtitle: 'How do you live day to day?',
+    fields: [
+      {
+        name: 'sleepSchedule', label: 'Sleep schedule', type: 'pills',
+        options: ['Early bird (before 10pm)', 'Regular (10pm–12am)', 'Night owl (after 12am)']
+      },
+      {
+        name: 'studyPref', label: 'Study preference', type: 'pills',
+        options: ['In my room', 'Library', 'Group study', 'Flexible']
+      },
+      {
+        name: 'cleanliness', label: 'Cleanliness level', type: 'pills',
+        options: ['Very organised', 'Moderate', 'Relaxed']
+      },
+      {
+        name: 'social', label: 'Social habits', type: 'pills',
+        options: ['Very social', 'Moderate', 'Private']
+      },
+      {
+        name: 'noise', label: 'Noise tolerance', type: 'pills',
+        options: ['Quiet please', 'Moderate', 'Lively is fine']
+      },
+      {
+        name: 'guests', label: 'Guest policy', type: 'pills',
+        options: ['Frequently', 'Occasionally', 'Never']
+      },
+    ]
+  },
+  {
+    id: 'habits',
+    title: 'Your habits',
+    subtitle: 'Honest answers make better matches',
+    fields: [
+      {
+        name: 'food', label: 'Food preference', type: 'pills',
+        options: ['Vegetarian', 'Vegetarian + Egg', 'Non-Vegetarian', 'Vegan', 'Halal', 'No preference']
+      },
+      {
+        name: 'smoke', label: 'Smoking', type: 'pills',
+        options: ['Non-smoker', 'Social smoker', 'Smoker', 'Trying to quit']
+      },
+      {
+        name: 'drink', label: 'Drinking', type: 'pills',
+        options: ['Non-drinker', 'Occasionally', 'Socially', 'Regularly']
+      },
+      {
+        name: 'cook', label: 'Cooking', type: 'pills',
+        options: ['Yes, I cook often', 'Learning', 'Rarely', 'Never']
+      },
+      {
+        name: 'exercise', label: 'Exercise', type: 'pills',
+        options: ['Every day', 'Often', 'Sometimes', 'Never']
+      },
+    ]
+  },
+  {
+    id: 'roomie',
+    title: 'Your ideal roommate',
+    subtitle: "Now tell us what you're looking for",
+    fields: [
+      {
+        name: 'roomieGender', label: 'Roommate gender', type: 'pills',
+        options: ['Male', 'Female', 'Non-Binary', 'Same gender only', "Don't Care"]
+      },
+      {
+        name: 'roomieAge', label: 'Roommate age group', type: 'pills',
+        options: ['18-24', '25-29', '30-34', '35-39', '40+', "Don't Care"]
+      },
+      { name: 'roomieCountry', label: 'Roommate country (optional)', type: 'text', placeholder: "Any country or leave blank" },
+      { name: 'roomieUniv', label: 'Roommate university (optional)', type: 'text', placeholder: "Any university or leave blank" },
+      {
+        name: 'roomieSem', label: 'Roommate year of study', type: 'pills',
+        options: ['Year 1', 'Year 2', 'Year 3', 'Year 4', 'Postgraduate', "Don't Care"]
+      },
+      {
+        name: 'roomieCourse', label: 'Roommate course', type: 'pills',
+        options: ['Same course', 'Same faculty', 'Any course', "Don't Care"]
+      },
+    ]
+  },
+  {
+    id: 'roomie_habits',
+    title: 'Roommate habits',
+    subtitle: 'What matters to you in a roommate?',
+    fields: [
+      {
+        name: 'roomieFood', label: 'Food preference', type: 'pills',
+        options: ['Vegetarian', 'Non-Vegetarian', 'Vegan', 'Halal', "Don't Care"]
+      },
+      {
+        name: 'roomieSmoke', label: 'Smoking', type: 'pills',
+        options: ['Non-smoker only', 'Smoker ok', "Don't Care"]
+      },
+      {
+        name: 'roomieDrink', label: 'Drinking', type: 'pills',
+        options: ['Non-drinker only', 'Drinker ok', "Don't Care"]
+      },
+      {
+        name: 'roomieCook', label: 'Cooking', type: 'pills',
+        options: ['Cooks regularly', 'Occasionally', "Don't Care"]
+      },
+    ]
+  },
+  {
+    id: 'photo',
+    title: 'Your profile photo',
+    subtitle: 'A face to the name goes a long way',
+    fields: [
+      { name: 'avatar', label: 'Photo URL', type: 'text', placeholder: 'https://... (link to your photo)' },
+    ]
+  },
+  {
+    id: 'hostel',
+    title: 'Your hostel preferences',
+    subtitle: 'Help us match you with the right place',
+    fields: [
+      { name: 'preferredHostel', label: 'Preferred hostel', type: 'text', placeholder: 'e.g. Pearl Hostel, KYU Block A' },
+      {
+        name: 'roomType', label: 'Room type', type: 'pills',
+        options: ['Single', 'Double', 'Shared dorm']
+      },
+      {
+        name: 'floorPref', label: 'Floor preference', type: 'pills',
+        options: ['Ground floor', 'First floor', 'Second floor', 'No preference']
+      },
+      {
+        name: 'bathroomPref', label: 'Bathroom', type: 'pills',
+        options: ['En-suite', 'Shared']
+      },
+      {
+        name: 'proximityPref', label: 'Proximity to', type: 'pills',
+        options: ['Dining hall', 'Main gate', 'Library', 'No preference']
+      },
+    ]
+  },
+];
 
 const EditProfile = ({
   getCurrentProfile,
@@ -12,356 +185,464 @@ const EditProfile = ({
   profile: { profile, loading },
   history
 }) => {
+  const [step, setStep] = useState(0);
+  const [direction, setDirection] = useState('forward');
+  const [animating, setAnimating] = useState(false);
   const [formData, setFormData] = useState({
-    name: '',
-    gender: '',
-    avatar:'',
-    age:'',
-    city: '',
-    country: '',
-    univ: '',
-    sem: '',
-    course:'',
-    food:'',
-    smoke:'',
-    drink:'',
-    cook:'',
-    notes:'',
-    linkedin:'',
-    roomieGender:'',
-    roomieAge:'',
-    roomieCountry:'',
-    roomieUniv:'',
-    roomieSem:'',
-    roomieCourse:'',
-    roomieFood:'',
-    roomieSmoke:'',
-    roomieDrink:'',
-    roomieCook:''
+    displayName: '', gender: '', age: '', city: '', country: '',
+    univ: '', sem: '', course: '', food: '', smoke: '', drink: '',
+    cook: '', notes: '', linkedin: '', avatar: '',
+    sleepSchedule: '', studyPref: '', cleanliness: '', social: '',
+    noise: '', guests: '', exercise: '',
+    roomieGender: '', roomieAge: '', roomieCountry: '', roomieUniv: '',
+    roomieSem: '', roomieCourse: '', roomieFood: '', roomieSmoke: '',
+    roomieDrink: '', roomieCook: '',
+    preferredHostel: '', roomType: '', floorPref: '', bathroomPref: '', proximityPref: ''
   });
 
   useEffect(() => {
     getCurrentProfile();
-    setFormData({
-      name: loading || !profile.name ? '':profile.name,
-      gender: loading || !profile.gender ? '':profile.gender,
-      avatar: loading || !profile.avatar ? '':profile.avatar,
-      age: loading || !profile.age ? '':profile.age,
-      city: loading || !profile.city ? '':profile.city,
-      country: loading || !profile.country ? '':profile.country,
-      univ: loading || !profile.univ ? '':profile.univ,
-      sem: loading || !profile.sem ? '' : profile.sem,
-      course: loading || !profile.course ? '':profile.course,
-      food: loading || !profile.food ? '':profile.food,
-      smoke: loading || !profile.smoke ? '':profile.smoke,
-      drink: loading || !profile.drink ? '':profile.drink,
-      cook: loading || !profile.cook ? '':profile.cook,
-      notes: loading || !profile.notes ? '':profile.notes,
-      linkedin: loading || !profile.linkedin ? '':profile.linkedin,
-      roomieGender: loading || !profile.roomieGender ? '':profile.roomieGender,
-      roomieAge: loading || !profile.roomieAge ? '':profile.roomieAge,
-      roomieCountry: loading || !profile.roomieCountry ? '':profile.roomieCountry,
-      roomieUniv: loading || !profile.roomieUniv ? '':profile.roomieUniv,
-      roomieSem: loading || !profile.roomieSem ? '':profile.roomieSem,
-      roomieCourse: loading || !profile.roomieCourse ? '':profile.roomieCourse,
-      roomieFood: loading || !profile.roomieFood ? '':profile.roomieFood,
-      roomieSmoke: loading || !profile.roomieSmoke ? '':profile.roomieSmoke,
-      roomieDrink: loading || !profile.roomieDrink ? '':profile.roomieDrink,
-      roomieCook:loading || !profile.roomieCook ? '':profile.roomieCook
-    })
+    if (!loading && profile) {
+      setFormData({
+        displayName: profile.name || `${profile.firstName || ''} ${profile.lastName || ''}`.trim(),
+        gender: profile.gender || '',
+        age: profile.age || '',
+        city: profile.city || '',
+        country: profile.country || '',
+        univ: profile.univ || '',
+        sem: profile.sem || '',
+        course: profile.course || '',
+        food: profile.food || '',
+        smoke: profile.smoke || '',
+        drink: profile.drink || '',
+        cook: profile.cook || '',
+        notes: profile.notes || '',
+        linkedin: profile.linkedin || '',
+        avatar: profile.avatar || '',
+        sleepSchedule: profile.sleepSchedule || '',
+        studyPref: profile.studyPref || '',
+        cleanliness: profile.cleanliness || '',
+        social: profile.social || '',
+        noise: profile.noise || '',
+        guests: profile.guests || '',
+        exercise: profile.exercise || '',
+        preferredHostel: profile.preferredHostel || '',
+        roomType: profile.roomType || '',
+        floorPref: profile.floorPref || '',
+        bathroomPref: profile.bathroomPref || '',
+        proximityPref: profile.proximityPref || '',
+        roomieGender: profile.roomieGender || '',
+        roomieAge: profile.roomieAge || '',
+        roomieCountry: profile.roomieCountry || '',
+        roomieUniv: profile.roomieUniv || '',
+        roomieSem: profile.roomieSem || '',
+        roomieCourse: profile.roomieCourse || '',
+        roomieFood: profile.roomieFood || '',
+        roomieSmoke: profile.roomieSmoke || '',
+        roomieDrink: profile.roomieDrink || '',
+        roomieCook: profile.roomieCook || '',
+      });
+    }
   }, [loading, getCurrentProfile]);
 
-  const { name, gender, avatar, age, city, country, univ, sem, course,food,smoke,drink,cook,notes,linkedin,roomieGender,roomieAge,roomieCountry,roomieUniv,roomieSem,roomieCourse,roomieFood,roomieSmoke,roomieDrink,roomieCook } = formData;
-
-  const onChange = e =>
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-
-  const onSubmit = async e => {
-    e.preventDefault();
-    formData.id = profile.id
-    createProfile(formData, history, true);
+  const goToStep = (newStep) => {
+    if (animating) return;
+    setDirection(newStep > step ? 'forward' : 'back');
+    setAnimating(true);
+    setTimeout(() => {
+      setStep(newStep);
+      setAnimating(false);
+    }, 280);
   };
 
-  return loading && profile === null ? (
-    <Spinner />
-  ) : (
-    <Fragment>
-      <h1 className='large text-primary'>Update Profile!</h1>
-      <p className='lead'>
-        <i className='fas fa-user' /> Welcome {user && profile.name}
-      </p>
-      <div>
-      <Form onSubmit={onSubmit}>
-          <h2>Your Prefernces</h2>
-          <Form.Row>
-            <Form.Group as={Col} controlId="formGridEmail">
-              <Form.Label>Name</Form.Label>
-              <Form.Control placeholder="Enter name" name='name' value={name} onChange={onChange}/>
-            </Form.Group>
-          </Form.Row>
+  const handlePill = (name, value) => {
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
 
-          <Form.Row>
-            <Form.Group as={Col} controlId="formGender">
-              <Form.Label>Gender</Form.Label>
-              <Form.Control as="select" name='gender' value={gender} onChange={onChange}>
-                <option value="">Choose...</option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-                <option value="Non-Binary">Non-Binary</option>
-                <option value="Transgender">Transgender</option>
-                <option value="Intersex">Intersex</option>
-                <option value="I prefer not to say">I prefer not to say</option>
-              </Form.Control>
-            </Form.Group>
+  const handleChange = (e) => {
+    e.persist();
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
 
-            <Form.Group as={Col} controlId="formAge">
-              <Form.Label>Age</Form.Label>
-              <Form.Control as="select" name='age' value={age} onChange={onChange}>
-                <option value="">Choose...</option>
-                <option value="11 or below">11 or below</option>
-                <option value="12-17">12-17</option>
-                <option value="18-24">18-24</option>
-                <option value="25-29">25-29</option>
-                <option value="30-34">30-34</option>
-                <option value="35-39">35-39</option>
-                <option value="40-44">40-44</option>
-                <option value="45-49">45-49</option>
-                <option value="50 or above">50 or above</option>
-                <option value="I prefer not to say">I prefer not to say</option>
-              </Form.Control>
-            </Form.Group>
-          </Form.Row>
+  const handleSubmit = () => {
+    const submitData = {
+      ...formData,
+      name: formData.displayName,
+    };
+    createProfile(submitData, history, true);
+  };
 
-          <Form.Row>
-            <Form.Group as={Col} controlId="formCity">
-              <Form.Label>City</Form.Label>
-              <Form.Control name='city' value={city} placeholder="Enter city" onChange={onChange}/>
-            </Form.Group>
+  const progress = ((step + 1) / STEPS.length) * 100;
+  const currentStep = STEPS[step];
 
-            <Form.Group as={Col} controlId="formCountry">
-              <Form.Label>Country</Form.Label>
-              <Form.Control name='country' value={country} placeholder="Enter country" onChange={onChange}/>
-            </Form.Group>
-          </Form.Row>
+  if (loading) return <Spinner />;
 
-          <Form.Row>
-            <Form.Group as={Col} controlId="formUniv">
-              <Form.Label>University</Form.Label>
-              <Form.Control as="select" name='univ' value={univ} onChange={onChange}>
-                <option value="">Choose...</option>
-                <option value="The University of Texas at Dallas">The University of Texas at Dallas</option>
-                <option value="North Carolina State University">North Carolina State University</option>
-              </Form.Control>
-            </Form.Group>
+  return (
+    <>
+      <style>{`
 
-            <Form.Group as={Col} controlId="formSemester">
-              <Form.Label>Starting Semester</Form.Label>
-              <Form.Control as="select" name='sem' value={sem} onChange={onChange}>
-                <option value="">Choose...</option>
-                <option value="Spring 2021">Spring 2021</option>
-                <option value="Fall 2021">Fall 2021</option>
-              </Form.Control>
-            </Form.Group>
+        .qz-wrap {
+          min-height: 100vh;
+          background: #0a0a0f;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          padding: 0 0 80px 0;
+          font-family: 'Satoshi', sans-serif;
+          color: #f0eeea;
+        }
 
-            <Form.Group as={Col} controlId="formCourse">
-              <Form.Label>Course</Form.Label>
-              <Form.Control as="select" name='course' value={course} onChange={onChange}>
-                <option value="">Choose...</option>
-                <option value="MS CS">MS CS</option>
-                <option value="MS BA">MS BA</option>
-                <option value="MS ITM">MS ITM</option>
-                <option value="MS Management Science">MS Management Science</option>
-                <option value="PhD">PhD</option>
-              </Form.Control>
-            </Form.Group>
-          </Form.Row>
+        .qz-top {
+          width: 100%;
+          max-width: 680px;
+          padding: 28px 24px 0;
+        }
 
-          <Form.Row>
-            <Form.Group as={Col} controlId="formFood">
-              <Form.Label>Food</Form.Label>
-              <Form.Control as="select" name='food' value={food} onChange={onChange}>
-                <option value="">Choose...</option>
-                <option value="Vegetarian">Vegetarian</option>
-                <option value="Vegetarian + Egg">Vegetarian + Egg</option>
-                <option value="Non-Vegetarian">Non-Vegetarian</option>
-                <option value="Jain">Jain</option>
-              </Form.Control>
-            </Form.Group>
+        .qz-progress-track {
+          width: 100%;
+          height: 3px;
+          background: #1e1e2e;
+          border-radius: 99px;
+          margin-bottom: 10px;
+          overflow: hidden;
+        }
 
-            <Form.Group as={Col} controlId="formSmoke">
-              <Form.Label>Smoke?</Form.Label>
-              <Form.Control as="select" name='smoke' value={smoke} onChange={onChange}>
-                <option value="">Choose...</option>
-                <option value="Smoker">Smoker</option>
-                <option value="Non-Smoker">Non-Smoker</option>
-              </Form.Control>
-            </Form.Group>
+        .qz-progress-fill {
+          height: 100%;
+          background: linear-gradient(90deg, #7c3aed, #ec4899);
+          border-radius: 99px;
+          transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
 
-            <Form.Group as={Col} controlId="formDrink">
-              <Form.Label>Drink?</Form.Label>
-              <Form.Control as="select" name='drink' value={drink} onChange={onChange}>
-                <option value="">Choose...</option>
-                <option value="Non-Drinker">Non-Drinker</option>
-                <option value="Occasional Drinker">Occasional Drinker</option>
-              </Form.Control>
-            </Form.Group>
+        .qz-step-label {
+          font-size: 11px;
+          color: #6b6b8a;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          font-weight: 500;
+        }
 
-            <Form.Group as={Col} controlId="formCook">
-              <Form.Label>Know Cooking?</Form.Label>
-              <Form.Control as="select" name='cook' value={cook} onChange={onChange}>
-                <option value="">Choose...</option>
-                <option value="Yes">Yes</option>
-                <option value="Learning">Learning</option>
-                <option value="No">No</option>
-              </Form.Control>
-            </Form.Group>
-          </Form.Row>
+        .qz-card {
+          width: 100%;
+          max-width: 680px;
+          padding: 0 24px;
+          margin-top: 32px;
+          transition: opacity 0.28s ease, transform 0.28s ease;
+        }
 
-          <Form.Row>
+        .qz-card.slide-out-forward {
+          opacity: 0;
+          transform: translateX(-40px);
+        }
 
-          <Form.Group as={Col} controlId="formLinkedin">
-              <Form.Label>Profile Photo Link</Form.Label>
-              <Form.Control name='avatar' value={avatar} placeholder="Enter Profile Photo URL" onChange={onChange}/>
-            </Form.Group>
+        .qz-card.slide-out-back {
+          opacity: 0;
+          transform: translateX(40px);
+        }
 
-            <Form.Group as={Col} controlId="formLinkedin">
-              <Form.Label>Linkedin</Form.Label>
-              <Form.Control name='linkedin' value={linkedin} placeholder="Enter Linkedin URL" onChange={onChange}/>
-            </Form.Group>
+        .qz-title {
+          font-family: 'Clash Display', sans-serif;
+          font-size: clamp(28px, 5vw, 42px);
+          font-weight: 700;
+          line-height: 1.1;
+          color: #f0eeea;
+          margin: 0 0 8px 0;
+        }
 
-            <Form.Group as={Col} controlId="formNotes">
-              <Form.Label>Notes</Form.Label>
-              <Form.Control name='notes' value={notes} placeholder="Enter notes" onChange={onChange}/>
-            </Form.Group>
-          </Form.Row>
+        .qz-subtitle {
+          font-size: 15px;
+          color: #8b8ba8;
+          margin: 0 0 36px 0;
+          font-weight: 400;
+        }
 
-          <h2>Roommate Prefernces</h2>
+        .qz-field {
+          margin-bottom: 28px;
+        }
 
-          <Form.Row>
-            <Form.Group as={Col} controlId="formRoomieGender">
-              <Form.Label>Roomie Gender</Form.Label>
-              <Form.Control as="select" name='roomieGender' value={roomieGender} onChange={onChange}>
-                <option value="">Choose...</option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-                <option value="Non-Binary">Non-Binary</option>
-                <option value="Transgender">Transgender</option>
-                <option value="Intersex">Intersex</option>
-                <option value="Don't Care">Don't Care</option>
-              </Form.Control>
-            </Form.Group>
+        .qz-label {
+          display: block;
+          font-size: 13px;
+          font-weight: 500;
+          color: #9898b8;
+          margin-bottom: 10px;
+          letter-spacing: 0.04em;
+          text-transform: uppercase;
+        }
 
-            <Form.Group as={Col} controlId="formRoomieAge">
-              <Form.Label>Roomie Age</Form.Label>
-              <Form.Control as="select" name='roomieAge' value={roomieAge} onChange={onChange}>
-                <option value="">Choose...</option>
-                <option value="11 or below">11 or below</option>
-                <option value="12-17">12-17</option>
-                <option value="18-24">18-24</option>
-                <option value="25-29">25-29</option>
-                <option value="30-34">30-34</option>
-                <option value="35-39">35-39</option>
-                <option value="40-44">40-44</option>
-                <option value="45-49">45-49</option>
-                <option value="50 or above">50 or above</option>
-                <option value="Don't Care">Don't Care</option>
-              </Form.Control>
-            </Form.Group>
-          </Form.Row>
+        .qz-input {
+          width: 100%;
+          background: #13131f;
+          border: 1.5px solid #1e1e30;
+          border-radius: 12px;
+          padding: 14px 16px;
+          font-size: 15px;
+          color: #f0eeea;
+          font-family: 'Satoshi', sans-serif;
+          outline: none;
+          transition: border-color 0.2s;
+          box-sizing: border-box;
+        }
 
-          <Form.Row>
-            <Form.Group as={Col} controlId="formRoomieCountry">
-              <Form.Label>Roomie Country</Form.Label>
-              <Form.Control name='roomieCountry' value={roomieCountry} placeholder="Enter country" onChange={onChange}/>
-            </Form.Group>
-          </Form.Row>
+        .qz-input:focus {
+          border-color: #7c3aed;
+        }
 
-          <Form.Row>
-            <Form.Group as={Col} controlId="formRoomieUniv">
-              <Form.Label>Roomie University</Form.Label>
-              <Form.Control as="select" name='roomieUniv' value={roomieUniv} onChange={onChange}>
-                <option value="">Choose...</option>
-                <option value="The University of Texas at Dallas">The University of Texas at Dallas</option>
-                <option value="North Carolina State University">North Carolina State University</option>
-                <option value="Don't Care">Don't Care</option>
-              </Form.Control>
-            </Form.Group>
+        .qz-input::placeholder {
+          color: #3a3a55;
+        }
 
-            <Form.Group as={Col} controlId="formRoomieSemester">
-              <Form.Label>Roomie Starting Semester</Form.Label>
-              <Form.Control as="select" name='roomieSem' value={roomieSem} onChange={onChange}>
-                <option value="">Choose...</option>
-                <option value="Spring 2021">Spring 2021</option>
-                <option value="Fall 2021">Fall 2021</option>
-                <option value="Don't Care">Don't Care</option>
-              </Form.Control>
-            </Form.Group>
+        .qz-textarea {
+          resize: vertical;
+          min-height: 90px;
+        }
 
-            <Form.Group as={Col} controlId="formRoomieCourse">
-              <Form.Label>Roomie Course</Form.Label>
-              <Form.Control as="select" name='roomieCourse' value={roomieCourse} onChange={onChange}>
-                <option value="">Choose...</option>
-                <option value="MS CS">MS CS</option>
-                <option value="MS BA">MS BA</option>
-                <option value="MS ITM">MS ITM</option>
-                <option value="MS Management Science">MS Management Science</option>
-                <option value="PhD">PhD</option>
-                <option value="Don't Care">Don't Care</option>
-              </Form.Control>
-            </Form.Group>
-          </Form.Row>
+        .qz-pills {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 10px;
+        }
 
-          <Form.Row>
-            <Form.Group as={Col} controlId="formRoomieFood">
-              <Form.Label>Roomie Food</Form.Label>
-              <Form.Control as="select" name='roomieFood' value={roomieFood} onChange={onChange}>
-                <option value="">Choose...</option>
-                <option value="Vegetarian">Vegetarian</option>
-                <option value="Vegetarian + Egg">Vegetarian + Egg</option>
-                <option value="Non-Vegetarian">Non-Vegetarian</option>
-                <option value="Jain">Jain</option>
-                <option value="Don't Care">Don't Care</option>
-              </Form.Control>
-            </Form.Group>
+        .qz-pill {
+          padding: 10px 18px;
+          border-radius: 99px;
+          border: 1.5px solid #1e1e30;
+          background: #13131f;
+          color: #8b8ba8;
+          font-size: 14px;
+          font-family: 'Satoshi', sans-serif;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.18s ease;
+          user-select: none;
+        }
 
-            <Form.Group as={Col} controlId="formRoomieSmoke">
-              <Form.Label>Roomie Smoke?</Form.Label>
-              <Form.Control as="select" name='roomieSmoke' value={roomieSmoke} onChange={onChange}>
-                <option value="">Choose...</option>
-                <option value="Smoker">Smoker</option>
-                <option value="Non-Smoker">Non-Smoker</option>
-                <option value="Don't Care">Don't Care</option>
-              </Form.Control>
-            </Form.Group>
+        .qz-pill:hover {
+          border-color: #7c3aed;
+          color: #c4b5fd;
+        }
 
-            <Form.Group as={Col} controlId="formRoomieDrink">
-              <Form.Label>Roomie Drink?</Form.Label>
-              <Form.Control as="select" name='roomieDrink' value={roomieDrink} onChange={onChange}>
-                <option value="">Choose...</option>
-                <option value="Non-Drinker">Non-Drinker</option>
-                <option value="Occasional Drinker">Occasional Drinker</option>
-                <option value="Don't Care">Don't Care</option>
-              </Form.Control>
-            </Form.Group>
+        .qz-pill.active {
+          background: linear-gradient(135deg, #7c3aed22, #ec489922);
+          border-color: #7c3aed;
+          color: #e0d7ff;
+        }
 
-            <Form.Group as={Col} controlId="formRoomieCook">
-              <Form.Label>Roomie Know Cooking?</Form.Label>
-              <Form.Control as="select" name='roomieCook' value={roomieCook} onChange={onChange}>
-                <option value="">Choose...</option>
-                <option value="Yes">Yes</option>
-                <option value="Learning">Learning</option>
-                <option value="No">No</option>
-                <option value="Don't Care">Don't Care</option>
-              </Form.Control>
-            </Form.Group>
-          </Form.Row>
+        .qz-avatar-preview {
+          width: 88px;
+          height: 88px;
+          border-radius: 50%;
+          object-fit: cover;
+          border: 2px solid #7c3aed;
+          margin-bottom: 16px;
+          display: block;
+        }
 
-          <Button variant="primary" type="submit">
-            Submit
-          </Button>
-        </Form>
+        .qz-avatar-placeholder {
+          width: 88px;
+          height: 88px;
+          border-radius: 50%;
+          background: #13131f;
+          border: 2px dashed #2e2e45;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 28px;
+          margin-bottom: 16px;
+          color: #3a3a55;
+        }
+
+        .qz-nav {
+          position: fixed;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          background: #0a0a0f;
+          border-top: 1px solid #1a1a2e;
+          padding: 16px 24px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          max-width: 680px;
+          margin: 0 auto;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 100%;
+          box-sizing: border-box;
+          z-index: 100;
+        }
+
+        .qz-btn-back {
+          background: transparent;
+          border: 1.5px solid #1e1e30;
+          color: #6b6b8a;
+          padding: 12px 24px;
+          border-radius: 99px;
+          font-size: 14px;
+          font-family: 'Satoshi', sans-serif;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .qz-btn-back:hover {
+          border-color: #3a3a55;
+          color: #9898b8;
+        }
+
+        .qz-btn-next {
+          background: linear-gradient(135deg, #7c3aed, #ec4899);
+          border: none;
+          color: #fff;
+          padding: 13px 36px;
+          border-radius: 99px;
+          font-size: 15px;
+          font-family: 'Satoshi', sans-serif;
+          font-weight: 600;
+          cursor: pointer;
+          transition: opacity 0.2s, transform 0.15s;
+          letter-spacing: 0.02em;
+        }
+
+        .qz-btn-next:hover {
+          opacity: 0.92;
+          transform: scale(1.02);
+        }
+
+        .qz-btn-next:active {
+          transform: scale(0.98);
+        }
+
+        .qz-dots {
+          display: flex;
+          gap: 6px;
+          align-items: center;
+        }
+
+        .qz-dot {
+          width: 6px;
+          height: 6px;
+          border-radius: 99px;
+          background: #1e1e30;
+          transition: all 0.25s;
+        }
+
+        .qz-dot.active {
+          background: #7c3aed;
+          width: 18px;
+        }
+
+        .qz-welcome {
+          font-size: 13px;
+          color: #4a4a6a;
+          margin-bottom: 32px;
+        }
+
+        .qz-welcome span {
+          color: #7c3aed;
+          font-weight: 600;
+        }
+      `}</style>
+
+      <div className="qz-wrap">
+        <div className="qz-top">
+          <div className="qz-progress-track">
+            <div className="qz-progress-fill" style={{ width: `${progress}%` }} />
+          </div>
+          <div className="qz-step-label">Step {step + 1} of {STEPS.length}</div>
+        </div>
+
+        <div
+          className={`qz-card ${animating ? (direction === 'forward' ? 'slide-out-forward' : 'slide-out-back') : ''}`}
+        >
+          {user && (
+            <p className="qz-welcome">
+              Hey <span>{user.firstName}</span>, let's build your profile
+            </p>
+          )}
+
+          <h1 className="qz-title">{currentStep.title}</h1>
+          <p className="qz-subtitle">{currentStep.subtitle}</p>
+
+          {currentStep.id === 'photo' && (
+            <div>
+              {formData.avatar ? (
+                <img src={formData.avatar} alt="preview" className="qz-avatar-preview" />
+              ) : (
+                <div className="qz-avatar-placeholder">?</div>
+              )}
+            </div>
+          )}
+
+          {currentStep.fields.map(field => (
+            <div className="qz-field" key={field.name}>
+              <label className="qz-label">{field.label}</label>
+
+              {field.type === 'pills' && (
+                <div className="qz-pills">
+                  {field.options.map(opt => (
+                    <div
+                      key={opt}
+                      className={`qz-pill ${formData[field.name] === opt ? 'active' : ''}`}
+                      onClick={() => handlePill(field.name, opt)}
+                    >
+                      {opt}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {field.type === 'text' && (
+                <input
+                  className="qz-input"
+                  type="text"
+                  name={field.name}
+                  value={formData[field.name]}
+                  onChange={handleChange}
+                  placeholder={field.placeholder}
+                />
+              )}
+
+              {field.type === 'textarea' && (
+                <textarea
+                  className="qz-input qz-textarea"
+                  name={field.name}
+                  value={formData[field.name]}
+                  onChange={handleChange}
+                  placeholder={field.placeholder}
+                />
+              )}
+            </div>
+          ))}
+        </div>
+
+        <nav className="qz-nav">
+          {step > 0 ? (
+            <button className="qz-btn-back" onClick={() => goToStep(step - 1)}>
+              ← Back
+            </button>
+          ) : (
+            <div />
+          )}
+
+          <div className="qz-dots">
+            {STEPS.map((_, i) => (
+              <div key={i} className={`qz-dot ${i === step ? 'active' : ''}`} />
+            ))}
+          </div>
+
+          {step < STEPS.length - 1 ? (
+            <button className="qz-btn-next" onClick={() => goToStep(step + 1)}>
+              Next →
+            </button>
+          ) : (
+            <button className="qz-btn-next" onClick={handleSubmit}>
+              Save profile ✓
+            </button>
+          )}
+        </nav>
       </div>
-    </Fragment>
+    </>
   );
 };
 
@@ -377,7 +658,4 @@ const mapStateToProps = state => ({
   profile: state.profile
 });
 
-export default connect(
-  mapStateToProps,
-  { getCurrentProfile, createProfile }
-)(EditProfile);
+export default connect(mapStateToProps, { getCurrentProfile, createProfile })(EditProfile);

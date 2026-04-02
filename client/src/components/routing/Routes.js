@@ -10,6 +10,7 @@ import Recommended from '../dashboard/Recommended';
 import Profile from '../dashboard/Profile';
 import NotFound from '../layout/NotFound';
 import PrivateRoute from '../routing/PrivateRoute';
+import AdminPortal from '../admin/AdminPortal';
 
 const Routes = () => {
   return (
@@ -23,6 +24,7 @@ const Routes = () => {
         <PrivateRoute exact path='/dashboard' component={Dashboard} />
         <PrivateRoute exact path='/recommendations' component={Recommended} />
         <PrivateRoute exact path="/edit-profile" component={EditProfile} />
+        <Route exact path='/admin' component={AdminPortal} />
         <Route component={NotFound} />
       </Switch>
     </section>
