@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import HostelLogin from './HostelLogin';
 import AdminDashboard from './AdminDashboard';
 
@@ -29,7 +30,16 @@ const AdminPortal = () => {
         <AdminDashboard token={token} />
       </div>
     )
-    : <HostelLogin onLogin={handleLogin} />;
+    : (
+      <div>
+        <div style={{ padding: '12px 0 8px', marginBottom: '8px', display: 'flex', alignItems: 'center' }}>
+          <Link to="/" style={{ fontSize: '0.85rem', opacity: 0.6, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            ← Back to Homies
+          </Link>
+        </div>
+        <HostelLogin onLogin={handleLogin} />
+      </div>
+    );
 };
 
 export default AdminPortal;

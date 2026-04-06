@@ -9,7 +9,7 @@ const Navbar = ({ auth: { isAuthenticated, loading }, logout }) => {
   const { theme, toggleTheme } = useTheme();
   const hostelToken = localStorage.getItem('hostelToken');
   const studentToken = localStorage.getItem('token');
-  const isHostelAdmin = !!hostelToken && !studentToken;
+  const isHostelAdmin = !!hostelToken && !studentToken && window.location.pathname.startsWith('/admin');
 
   const adminLinks = (
     <ul>
@@ -17,6 +17,7 @@ const Navbar = ({ auth: { isAuthenticated, loading }, logout }) => {
       <li>
         <a href='#!' style={{ cursor: 'pointer' }} onClick={() => {
           localStorage.removeItem('hostelToken');
+          localStorage.removeItem('hostelName');
           window.location.href = '/admin';
         }}>
           <span className='hide-sm'>Logout</span>
