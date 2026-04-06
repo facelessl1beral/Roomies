@@ -13,7 +13,7 @@ const HostelLogin = ({ onLogin }) => {
     try {
       const res = await axios.post('/api/hostels/login', formData);
       localStorage.setItem('hostelToken', res.data.token);
-      onLogin(res.data.token);
+      onLogin(res.data.token, formData.name);
     } catch (err) {
       setError(err.response?.data?.errors?.[0]?.msg || 'Login failed');
     }

@@ -7,7 +7,9 @@ import { useTheme } from '../../App';
 
 const Navbar = ({ auth: { isAuthenticated, loading }, logout }) => {
   const { theme, toggleTheme } = useTheme();
-  const isHostelAdmin = !!localStorage.getItem('hostelToken');
+  const hostelToken = localStorage.getItem('hostelToken');
+  const studentToken = localStorage.getItem('token');
+  const isHostelAdmin = !!hostelToken && !studentToken;
 
   const adminLinks = (
     <ul>

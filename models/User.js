@@ -61,6 +61,10 @@ const UserSchema = new mongoose.Schema({
   floorPref:       { type: String, default: '' },
   bathroomPref:    { type: String, default: '' },
   proximityPref:   { type: String, default: '' },
+  // Booking status
+  bookingStatus:  { type: String, default: 'none' },
+  assignedRoom:   { type: String, default: '' },
+  assignedHostel: { type: String, default: '' },
   // Matching system
   accepted: { type: [String], default: [] },
   rejected: { type: [String], default: [] },

@@ -106,7 +106,7 @@ const SwipeCard = ({ profile, isTop, position, onSwipe }) => {
       <div className="swipe-card-body">
         <div className="swipe-card-name">
           <span>{displayName}</span>
-          <span className={`match-badge ${matchClass}`}>{score}%</span>
+          <span className={`match-badge ${matchClass}`}>{Math.round(score)}%</span>
         </div>
         <p className="swipe-card-location">
           {profile.city}{profile.country && `, ${profile.country}`}
@@ -225,7 +225,7 @@ const Recommended = ({
             marginTop: '1.25rem', fontSize: '0.8rem',
             color: 'var(--text-muted)', textAlign: 'center'
           }}>
-            Drag cards or use the buttons · {cards[0]?.score}% match
+            Drag cards or use the buttons · {Math.round(cards[0]?.score || 0)}% match
           </p>
         </>
       ) : (

@@ -105,6 +105,43 @@ const Dashboard = ({
             </div>
           </div>
 
+          {/* Booking status strip */}
+          <div className="card" style={{ marginTop: '1.25rem' }}>
+            <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '0.8rem', marginBottom: '1rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              Hostel Booking
+            </h3>
+            {profile.bookingStatus === 'confirmed' ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+                <span style={{ fontSize: '2rem' }}>🏠</span>
+                <div>
+                  <p style={{ margin: 0, fontWeight: 600, color: 'var(--accent-purple)' }}>Booking Confirmed</p>
+                  <p style={{ margin: 0, fontSize: '0.9rem', opacity: 0.8 }}>Room <strong>{profile.assignedRoom}</strong> at <strong>{profile.assignedHostel}</strong></p>
+                </div>
+                <span style={{ marginLeft: 'auto', background: '#48bb78', color: '#fff', borderRadius: '12px', padding: '4px 14px', fontSize: '0.8rem' }}>Confirmed</span>
+              </div>
+            ) : profile.bookingStatus === 'pending' ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <span style={{ fontSize: '2rem' }}>⏳</span>
+                <div>
+                  <p style={{ margin: 0, fontWeight: 600 }}>Awaiting Confirmation</p>
+                  <p style={{ margin: 0, fontSize: '0.9rem', opacity: 0.8 }}>Your match is waiting for hostel approval at <strong>{profile.preferredHostel || 'your selected hostel'}</strong></p>
+                </div>
+                <span style={{ marginLeft: 'auto', background: '#ed8936', color: '#fff', borderRadius: '12px', padding: '4px 14px', fontSize: '0.8rem' }}>Pending</span>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+                <span style={{ fontSize: '2rem' }}>🏡</span>
+                <div>
+                  <p style={{ margin: 0, fontWeight: 600 }}>No booking yet</p>
+                  <p style={{ margin: 0, fontSize: '0.9rem', opacity: 0.8 }}>
+                    {profile.preferredHostel ? `You've selected ${profile.preferredHostel} — start matching to get a room` : 'Set your hostel preference and start matching'}
+                  </p>
+                </div>
+                <Link to="/recommendations" className="btn btn-primary" style={{ marginLeft: 'auto', fontSize: '0.85rem', padding: '0.5rem 1.1rem' }}>Start Matching →</Link>
+              </div>
+            )}
+          </div>
+
           {/* Lifestyle summary strip */}
           {(profile.sleepSchedule || profile.studyPref || profile.social || profile.noise) && (
             <div className="card" style={{ marginTop: '1.25rem' }}>
